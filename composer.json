@@ -1,0 +1,23 @@
+{
+  "name": "alnv/contao-open-ai-assistant-bundle",
+  "type": "contao-bundle",
+  "description": "",
+  "authors": [
+    {
+      "name": "Alexander Naumov",
+      "homepage": "https://www.alexandernaumov.de",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Alnv\\ContaoOpenAiAssistantBundle\\": "src/"
+    }
+  },
+  "require": {
+    "contao/core-bundle": "~4.13 || ~5.0"
+  },
+  "extra": {
+    "contao-manager-plugin": "Alnv\\ContaoOpenAiAssistantBundle\\ContaoManager\\Plugin"
+  }
+}
