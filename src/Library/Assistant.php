@@ -72,7 +72,33 @@ class Assistant extends ChatGPT
 
     public function deleteAssistantId(): void
     {
-        //
+        $arrAssistant = $this->getAssistant();
+        $strAssistantId = $arrAssistant['assistant_id'] ?? '';
+
+        $objCurl = \curl_init(sprintf(Statics::URL_DELETE_ASSISTANT, $strAssistantId));
+
+        \curl_setopt($objCurl, CURLOPT_CUSTOMREQUEST, "DELETE");
+        \curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($objCurl, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $this->getToken(),
+            "Content-Type: application/json",
+            "OpenAI-Beta: assistants=v2"
+        ]);
+
+        $objResponse = \curl_exec($objCurl);
+        $arrResponse = \json_decode($objResponse, true);
+
+        if (!empty($arrResponse) && isset($arrResponse['error'])) {
+            throw new \RuntimeException($arrResponse['error']['message'] ?? '');
+        }
+
+        Database::getInstance()
+            ->prepare('UPDATE tl_ai_assistants %s WHERE id=?')
+            ->set(['assistant_id' => ''])
+            ->limit(1)
+            ->execute($arrAssistant['id']);
+
+        $this->arrAssistant['assistant_id'] = '';
     }
 
     public function getAssistantId(): string
@@ -80,18 +106,64 @@ class Assistant extends ChatGPT
         return $this->arrAssistant['assistant_id'] ?? '';
     }
 
-    public function createAssistantId($blnForce = false): string
+    public function modifyAssistantId($arrAssistantData): void
     {
 
         $arrAssistant = $this->getAssistant();
         $strAssistantId = $arrAssistant['assistant_id'] ?? '';
 
-        if ($strAssistantId && !$blnForce) {
-            return $strAssistantId;
+        if (!$strAssistantId) {
+            return;
         }
 
-        if ($strAssistantId && $blnForce) {
-            $this->deleteAssistantId();
+        $objCurl = \curl_init(sprintf(Statics::URL_MODIFY_ASSISTANT, $strAssistantId));
+
+        \curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($objCurl, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $this->getToken(),
+            "Content-Type: application/json",
+            "OpenAI-Beta: assistants=v2"
+        ]);
+
+        \curl_setopt($objCurl, CURLOPT_POST, true);
+        \curl_setopt($objCurl, CURLOPT_POSTFIELDS, json_encode($arrAssistantData));
+
+        $objResponse = \curl_exec($objCurl);
+        $arrResponse = \json_decode($objResponse, true);
+
+        if (!empty($arrResponse) && isset($arrResponse['error'])) {
+            throw new \RuntimeException($arrResponse['error']['message'] ?? '');
+        }
+
+        $arrSet = [
+            'tstamp' => time()
+        ];
+
+        if ($strName = $arrAssistantData['name']) {
+            $arrSet['name'] = $strName;
+        }
+        if ($strDescription = $arrAssistantData['description']) {
+            $arrSet['description'] = $strDescription;
+        }
+        if ($strInstructions = $arrAssistantData['instructions']) {
+            $arrSet['instructions'] = $strInstructions;
+        }
+
+        Database::getInstance()
+            ->prepare('UPDATE tl_ai_assistants %s WHERE id=?')
+            ->set($arrSet)
+            ->limit(1)
+            ->execute($arrAssistant['id']);
+    }
+
+    public function createAssistantId(): string
+    {
+
+        $arrAssistant = $this->getAssistant();
+        $strAssistantId = $arrAssistant['assistant_id'] ?? '';
+
+        if ($strAssistantId) {
+            return $strAssistantId;
         }
 
         $arrData = [
@@ -127,9 +199,7 @@ class Assistant extends ChatGPT
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_assistants %s WHERE id=?')
-            ->set([
-                'assistant_id' => $strAssistantId
-            ])
+            ->set(['assistant_id' => $strAssistantId])
             ->limit(1)
             ->execute($arrAssistant['id']);
 
@@ -169,24 +239,7 @@ class Assistant extends ChatGPT
             ]
         ];
 
-        $objCurl = \curl_init(sprintf(Statics::URL_MODIFY_ASSISTANT, $strAssistantId));
-
-        \curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($objCurl, CURLOPT_HTTPHEADER, [
-            "Authorization: Bearer " . $this->getToken(),
-            "Content-Type: application/json",
-            "OpenAI-Beta: assistants=v2"
-        ]);
-
-        \curl_setopt($objCurl, CURLOPT_POST, true);
-        \curl_setopt($objCurl, CURLOPT_POSTFIELDS, json_encode($arrData));
-
-        $objResponse = \curl_exec($objCurl);
-        $arrResponse = \json_decode($objResponse, true);
-
-        if (!empty($arrResponse) && isset($arrResponse['error'])) {
-            throw new \RuntimeException($arrResponse['error']['message'] ?? '');
-        }
+        $this->modifyAssistantId($arrData);
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_assistants %s WHERE id=?')

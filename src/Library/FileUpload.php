@@ -80,15 +80,50 @@ class FileUpload extends ChatGPT
         return $this->arrFileUpload['file_id'] ?? '';
     }
 
-    public function uploadFile($blnForce = false): string
+    public function deleteFileId(): void
+    {
+        $arrFileUpload = $this->getFileUpload();
+        $strFileId = $arrFileUpload['file_id'] ?? '';
+
+        $objCurl = \curl_init(sprintf(Statics::URL_DELETE_FILE_UPLOAD, $strFileId));
+
+        \curl_setopt($objCurl, CURLOPT_CUSTOMREQUEST, "DELETE");
+        \curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($objCurl, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $this->getToken(),
+            "Content-Type: application/json",
+            "OpenAI-Beta: assistants=v2"
+        ]);
+
+        $objResponse = \curl_exec($objCurl);
+        $arrResponse = \json_decode($objResponse, true);
+
+        if (!empty($arrResponse) && isset($arrResponse['error'])) {
+            throw new \RuntimeException($arrResponse['error']['message'] ?? '');
+        }
+
+        Database::getInstance()
+            ->prepare('UPDATE tl_ai_file_uploads %s WHERE id=?')
+            ->set(['file_id' => ''])
+            ->limit(1)
+            ->execute($arrFileUpload['id']);
+
+        $this->arrFileUpload['file_id'] = '';
+    }
+
+    public function uploadFile(): string
     {
 
         $arrFileUpload= $this->getFileUpload();
         $strFileId = $arrFileUpload['file_id'] ?? '';
         $strRootDir = System::getContainer()->getParameter('kernel.project_dir');
 
-        if ($strFileId && !$blnForce) {
+        if ($strFileId) {
             return $strFileId;
+        }
+
+        if (!($arrFileUpload['file'] ?? '')) {
+            return '';
         }
 
         $objCurl = \curl_init(Statics::URL_CREATE_FILE_UPLOAD);
@@ -101,7 +136,7 @@ class FileUpload extends ChatGPT
 
         \curl_setopt($objCurl, CURLOPT_POST, true);
         \curl_setopt($objCurl, CURLOPT_POSTFIELDS, [
-            'purpose' => 'assistants',
+            'purpose' => $arrFileUpload['purpose'] ?? 'assistants',
             'file' => new \CURLFile($strRootDir . '/' . $arrFileUpload['file'])
         ]);
 
@@ -116,9 +151,7 @@ class FileUpload extends ChatGPT
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_file_uploads %s WHERE id=?')
-            ->set([
-                'file_id' => $strFileId
-            ])
+            ->set(['file_id' => $strFileId])
             ->limit(1)
             ->execute($arrFileUpload['id']);
 

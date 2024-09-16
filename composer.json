@@ -15,7 +15,8 @@
     }
   },
   "require": {
-    "contao/core-bundle": "~4.13 || ~5.0"
+    "contao/core-bundle": "~4.13 || ~5.0",
+    "ext-curl": "*"
   },
   "extra": {
     "contao-manager-plugin": "Alnv\\ContaoOpenAiAssistantBundle\\ContaoManager\\Plugin"

@@ -51,6 +51,42 @@ class VectorStore extends ChatGPT
         $this->createVectorStoreId();
     }
 
+    public function deleteVectorStoreId(): void
+    {
+
+        $arrVectorStore = $this->getVectorStore();
+        $strVectorStoreId = $arrVectorStore['vector_store_id'] ?? '';
+
+        if (!$strVectorStoreId) {
+            return;
+        }
+
+        $objCurl = \curl_init(sprintf(Statics::URL_DELETE_VECTOR_STORES, $strVectorStoreId));
+
+        \curl_setopt($objCurl, CURLOPT_CUSTOMREQUEST, "DELETE");
+        \curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($objCurl, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $this->getToken(),
+            "Content-Type: application/json",
+            "OpenAI-Beta: assistants=v2"
+        ]);
+
+        $objResponse = \curl_exec($objCurl);
+        $arrResponse = \json_decode($objResponse, true);
+
+        if (!empty($arrResponse) && isset($arrResponse['error'])) {
+            throw new \RuntimeException($arrResponse['error']['message'] ?? '');
+        }
+
+        Database::getInstance()
+            ->prepare('UPDATE tl_ai_vector_stores %s WHERE id=?')
+            ->set(['vector_store_id' => ''])
+            ->limit(1)
+            ->execute($arrVectorStore['id']);
+
+        $this->arrVectorStore['vector_store_id'] = '';
+    }
+
     protected function setVectorStore(): void
     {
 
@@ -100,9 +136,7 @@ class VectorStore extends ChatGPT
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_vector_stores %s WHERE id=?')
-            ->set([
-                'state' => $arrResponse['status'] ?? ''
-            ])
+            ->set(['state' => $arrResponse['status'] ?? '', 'tstamp' => time()])
             ->limit(1)
             ->execute($arrVectorStore['id']);
 
@@ -111,19 +145,23 @@ class VectorStore extends ChatGPT
         return $arrResponse;
     }
 
-    public function createVectorStoreId($blnForce = false): string
+    public function createVectorStoreId(): string
     {
 
         $arrVectorStore = $this->getVectorStore();
         $strVectorStoreId = $arrVectorStore['vector_store_id'] ?? '';
 
-        if ($strVectorStoreId && !$blnForce) {
+        if ($strVectorStoreId) {
+            return $strVectorStoreId;
+        }
+
+        if (empty($arrVectorStore['file_ids'])) {
             return $strVectorStoreId;
         }
 
         $arrData = [
             'name' => $this->strName,
-            'file_ids' => $arrVectorStore['file_ids'] ?? []
+            'file_ids' => $arrVectorStore['file_ids']
         ];
 
         $objCurl = \curl_init(Statics::URL_CREATE_VECTOR_STORES);
@@ -140,7 +178,6 @@ class VectorStore extends ChatGPT
 
         $objResponse = \curl_exec($objCurl);
         $arrResponse = \json_decode($objResponse, true);
-
 
         if (!empty($arrResponse) && isset($arrResponse['error'])) {
             throw new \RuntimeException($arrResponse['error']['message'] ?? '');

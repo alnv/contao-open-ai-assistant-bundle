@@ -15,7 +15,7 @@ class Bot
 
     private string $strToken;
 
-    protected array $arrOptions;
+    protected array $arrOptions; // thread_id, description, instructions, files
 
     protected string $strName;
 
@@ -285,7 +285,6 @@ class Bot
     {
 
         $objAssistant = new Assistant($this->strName);
-
         if (!$objAssistant->exist()) {
             $objAssistant->create([
                 'description' => $this->arrOptions['description'] ?? '',
