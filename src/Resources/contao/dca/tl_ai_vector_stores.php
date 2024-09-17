@@ -1,6 +1,5 @@
 <?php
 
-use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Alnv\ContaoOpenAiAssistantBundle\Library\VectorStore;
 use Contao\Controller;
 use Contao\Database;
@@ -42,9 +41,8 @@ $GLOBALS['TL_DCA']['tl_ai_vector_stores'] = [
 
                 $objFileUploadEntity = Database::getInstance()->prepare('SELECT * FROM tl_ai_vector_stores WHERE id=?')->limit(1)->execute($strId);
                 if ($objFileUploadEntity->vector_store_id) {
-
                     $GLOBALS['TL_DCA']['tl_ai_vector_stores']['fields']['name']['eval']['readonly'] = true;
-                    PaletteManipulator::create()->removeField('file_ids')->applyToPalette('default', 'tl_ai_vector_stores');
+                    $GLOBALS['TL_DCA']['tl_ai_vector_stores']['fields']['file_ids']['eval']['disabled'] = true;
                 }
             }
         ],
@@ -140,13 +138,11 @@ $GLOBALS['TL_DCA']['tl_ai_vector_stores'] = [
             'sql' => ['type' => 'string', 'length' => 255, 'default' => '']
         ],
         'file_ids' => [
-            'inputType' => 'select',
+            'inputType' => 'checkboxWizard',
             'eval' => [
-                'chosen' => true,
                 'multiple' => true,
                 'mandatory' => true,
-                'includeBlankOption' => true,
-                'tl_class' => 'clr long'
+                'tl_class' => 'clr'
             ],
             'options_callback' => function () {
                 $arrFileIds = [];

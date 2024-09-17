@@ -27,6 +27,7 @@ class FileUpload extends ChatGPT
     {
 
         $objFile = FilesModel::findByPath($strFile);
+
         if (!$objFile) {
             throw new \RuntimeException($strFile . ' not found');
         }

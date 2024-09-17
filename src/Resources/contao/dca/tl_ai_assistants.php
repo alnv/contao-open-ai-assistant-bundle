@@ -2,6 +2,7 @@
 
 use Contao\DC_Table;
 use Contao\Database;
+use Contao\StringUtil;
 use Contao\DataContainer;
 use Alnv\ContaoOpenAiAssistantBundle\Library\Assistant;
 
@@ -27,6 +28,7 @@ $GLOBALS['TL_DCA']['tl_ai_assistants'] = [
             if (!$objDataContainer->id) {
                 return;
             }
+
             $objAssistantEntity = Database::getInstance()->prepare('SELECT * FROM tl_ai_assistants WHERE id=?')->limit(1)->execute($objDataContainer->id);
             if (!$objAssistantEntity->numRows) {
                 return;
@@ -45,6 +47,7 @@ $GLOBALS['TL_DCA']['tl_ai_assistants'] = [
                     'instructions' => $objAssistantEntity->instructions ?: ''
                 ]);
             }
+            $objAssistant->updateVectorStore(StringUtil::deserialize($objAssistantEntity->vector_stores, true));
         }],
         'sql' => [
             'keys' => [
@@ -59,7 +62,7 @@ $GLOBALS['TL_DCA']['tl_ai_assistants'] = [
             'fields' => ['name']
         ],
         'label' => [
-            'fields' => ['name', 'description', 'assistant_id'],
+            'fields' => ['name', 'assistant_id'],
             'showColumns' => true
         ],
         'operations' => [
@@ -79,7 +82,7 @@ $GLOBALS['TL_DCA']['tl_ai_assistants'] = [
         ]
     ],
     'palettes' => [
-        'default' => 'name,description;instructions'
+        'default' => 'name,description;instructions;vector_stores'
     ],
     'fields' => [
         'id' => [
@@ -125,6 +128,19 @@ $GLOBALS['TL_DCA']['tl_ai_assistants'] = [
             'sql' => ['type' => 'string', 'length' => 128, 'default' => '']
         ],
         'vector_stores' => [
+            'inputType' => 'checkboxWizard',
+            'eval' => [
+                'multiple' => true,
+                'tl_class' => 'clr'
+            ],
+            'options_callback' => function () {
+                $arrReturn = [];
+                $objVectorStoreEntities = Database::getInstance()->prepare('SELECT * FROM tl_ai_vector_stores ORDER BY `name`')->execute();
+                while ($objVectorStoreEntities->next()) {
+                    $arrReturn[$objVectorStoreEntities->vector_store_id] = $objVectorStoreEntities->name;
+                }
+                return $arrReturn;
+            },
             'sql' => 'blob NULL'
         ]
     ]

@@ -2,9 +2,9 @@
 
 namespace Alnv\ContaoOpenAiAssistantBundle\Library;
 
+use Alnv\ContaoOpenAiAssistantBundle\Helpers\Statics;
 use Contao\Database;
 use Contao\StringUtil;
-use Alnv\ContaoOpenAiAssistantBundle\Helpers\Statics;
 
 class Assistant extends ChatGPT
 {
@@ -243,12 +243,37 @@ class Assistant extends ChatGPT
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_assistants %s WHERE id=?')
-            ->set([
-                'vector_stores' => \serialize($this->arrAssistant['vector_stores'])
-            ])
+            ->set(['vector_stores' => \serialize($this->arrAssistant['vector_stores'])])
             ->limit(1)
             ->execute($arrAssistant['id']);
 
         return true;
+    }
+
+    public function updateVectorStore(array $arrVectorStoreIds): array
+    {
+
+
+        $arrAssistant = $this->getAssistant();
+
+        // todo check if array different
+
+        $arrData = [
+            'tool_resources' => [
+                'file_search' => [
+                    'vector_store_ids' => $arrVectorStoreIds
+                ]
+            ]
+        ];
+
+        $this->modifyAssistantId($arrData);
+
+        Database::getInstance()
+            ->prepare('UPDATE tl_ai_assistants %s WHERE id=?')
+            ->set(['vector_stores' => \serialize($arrVectorStoreIds)])
+            ->limit(1)
+            ->execute($arrAssistant['id']);
+
+        return $arrVectorStoreIds;
     }
 }

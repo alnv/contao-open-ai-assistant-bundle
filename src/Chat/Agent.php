@@ -10,7 +10,7 @@ use Contao\Config;
 use Contao\Database;
 use Contao\StringUtil;
 
-class Bot
+class Agent
 {
 
     private string $strToken;
@@ -51,6 +51,11 @@ class Bot
         $this->load();
     }
 
+    public function reset()
+    {
+        // todo
+    }
+
     protected function load(): void
     {
 
@@ -76,7 +81,7 @@ class Bot
                 'thread_id' => $strThreadId
             ];
 
-            Database::getInstance()->prepare('INSERT INTO tl_ai_chat_bots %s')->set($arrSet)->execute();
+            Database::getInstance()->prepare('INSERT INTO tl_ai_chat_threads %s')->set($arrSet)->execute();
         }
     }
 
@@ -113,10 +118,10 @@ class Bot
     {
         $strThreadId = $this->getThreadId();
 
-        return Database::getInstance()->prepare('SELECT * FROM tl_ai_chat_bots WHERE `thread_id`=?')->limit(1)->execute($strThreadId)->row();
+        return Database::getInstance()->prepare('SELECT * FROM tl_ai_chat_threads WHERE `thread_id`=?')->limit(1)->execute($strThreadId)->row();
     }
 
-    public function addMessage($strPrompt): Bot
+    public function addMessage($strPrompt): Agent
     {
 
         $strThreadId = $this->getThreadId();
@@ -160,7 +165,7 @@ class Bot
         $this->run();
 
         Database::getInstance()
-            ->prepare('UPDATE tl_ai_chat_bots %s WHERE thread_id=?')
+            ->prepare('UPDATE tl_ai_chat_threads %s WHERE thread_id=?')
             ->set([
                 'last_prompt' => $strPrompt
             ])
@@ -233,7 +238,7 @@ class Bot
         }
 
         Database::getInstance()
-            ->prepare('UPDATE tl_ai_chat_bots %s WHERE thread_id=?')
+            ->prepare('UPDATE tl_ai_chat_threads %s WHERE thread_id=?')
             ->set([
                 'last_run_id' => $arrResponse['id'] ?? ''
             ])
@@ -285,6 +290,7 @@ class Bot
     {
 
         $objAssistant = new Assistant($this->strName);
+
         if (!$objAssistant->exist()) {
             $objAssistant->create([
                 'description' => $this->arrOptions['description'] ?? '',

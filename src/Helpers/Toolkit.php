@@ -9,7 +9,11 @@ class Toolkit
     {
 
         $ini = strpos($strContent, $strStartTag);
-        if ($ini == 0) return [];
+
+        if ($ini == 0) {
+            return [];
+        }
+
         $ini += strlen($strStartTag);
         $len = strpos($strContent, $strEndTag, $ini) - $ini;
         $strContent = substr($strContent, $ini, $len);

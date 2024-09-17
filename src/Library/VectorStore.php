@@ -112,6 +112,11 @@ class VectorStore extends ChatGPT
         return $this->arrVectorStore;
     }
 
+    public function setFileIds($arrFileIds): void
+    {
+        $this->arrVectorStore['file_ids'] = $arrFileIds;
+    }
+
     public function retrieve(): array
     {
 
@@ -188,6 +193,7 @@ class VectorStore extends ChatGPT
         Database::getInstance()
             ->prepare('UPDATE tl_ai_vector_stores %s WHERE id=?')
             ->set([
+                'file_ids' => \serialize($arrVectorStore['file_ids']),
                 'vector_store_id' => $strVectorStoreId,
                 'state' => $arrResponse['status'] ?? ''
             ])

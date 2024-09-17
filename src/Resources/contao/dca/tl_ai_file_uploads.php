@@ -10,22 +10,20 @@ $GLOBALS['TL_DCA']['tl_ai_file_uploads'] = [
     'config' => [
         'dataContainer' => DC_Table::class,
         'onload_callback' => [function (DataContainer $objDataContainer) {
-
             $strId = $objDataContainer->id;
             $strAct = Input::get('act') ?: '';
+
             if ($strAct != 'edit') {
                 return;
             }
 
             $objFileUploadEntity = Database::getInstance()->prepare('SELECT * FROM tl_ai_file_uploads WHERE id=?')->limit(1)->execute($strId);
             if ($objFileUploadEntity->file_id) {
-
                 $GLOBALS['TL_DCA']['tl_ai_file_uploads']['fields']['name']['eval']['readonly'] = true;
                 PaletteManipulator::create()->removeField('file')->applyToPalette('default', 'tl_ai_file_uploads');
             }
         }],
         'ondelete_callback' => [function (DataContainer $objDataContainer) {
-
             if (!$objDataContainer->id) {
                 return;
             }
@@ -42,7 +40,6 @@ $GLOBALS['TL_DCA']['tl_ai_file_uploads'] = [
             $objFileUpload->deleteFileId();
         }],
         'onsubmit_callback' => [function (DataContainer $objDataContainer) {
-
             if (!$objDataContainer->id) {
                 return;
             }
