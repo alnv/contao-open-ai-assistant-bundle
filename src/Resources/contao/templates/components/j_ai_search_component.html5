@@ -1,0 +1,101 @@
+<script>
+    (function () {
+        new Vue({
+            el: "#<?= $this->templateId ?>",
+            data: function () {
+                return {
+                    error: false,
+                    initial: false,
+                    answering: false,
+                    prompt: "",
+                    messages: [],
+                    lastPrompt: "",
+                    intervalId: null
+                }
+            },
+            methods: {
+                sendPrompt: function () {
+                    if (!this.prompt || this.prompt === this.lastPrompt) {
+                        return;
+                    }
+                    this.clearInterval();
+                    this.answering = true;
+                    this.clearPrompt();
+                    this.fetch();
+                },
+                clearPrompt: function () {
+                    this.lastPrompt = this.prompt;
+                    this.prompt = '';
+                },
+                deleteAnswer: function () {
+                    this.messages = [];
+                    this.$http.post('open-ai-assistant/delete/thread/<?= $this->assistant ?>', {},
+                        {
+                            emulateJSON: true,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            before: function (request) {
+                                if (this.previousRequest) {
+                                    this.previousRequest.abort();
+                                }
+                                this.previousRequest = request;
+                            }
+                        }
+                    ).then(function (res) {
+                        if (res.status > 302) {
+                            this.answering = false;
+                            this.error = true;
+                        }
+                    }.bind(this));
+                },
+                fetch: function () {
+                    this.messages = [];
+                    this.$http.post('open-ai-assistant/search/<?= $this->assistant ?>', {
+                            prompt: this.lastPrompt,
+                            options: "<?= $this->postOptions ?>"
+                        },
+                        {
+                            emulateJSON: true,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            before: function (request) {
+                                if (this.previousRequest) {
+                                    this.previousRequest.abort();
+                                }
+                                this.previousRequest = request;
+                            }
+                        }
+                    ).then(function (res) {
+                        if (res.status > 302) {
+                            this.answering = false;
+                            this.error = true;
+                            return;
+                        }
+                        let arrMessages = res.body.messages;
+                        if (!arrMessages.length && this.lastPrompt) {
+                            if (!this.intervalId) {
+                                this.intervalId = setInterval(function () {
+                                    this.fetch();
+                                }.bind(this), 3000);
+                            }
+                        }
+                        if (arrMessages.length) {
+                            this.answering = false;
+                            this.clearInterval();
+                        }
+                        this.messages = arrMessages;
+                        this.lastPrompt = res.body.lastPrompt;
+                        this.initial = true;
+                    }.bind(this));
+                },
+                clearInterval: function () {
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                        this.intervalId = null;
+                    }
+                }
+            },
+            mounted: function () {
+                this.fetch();
+            }
+        })
+    })();
+</script>

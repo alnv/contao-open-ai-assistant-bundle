@@ -1,0 +1,3 @@
+openaiassistantcontroller:
+  resource: "@AlnvContaoOpenAiAssistantBundle/Controller"
+  type: annotation

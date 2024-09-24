@@ -72,6 +72,7 @@ class Assistant extends ChatGPT
 
     public function deleteAssistantId(): void
     {
+
         $arrAssistant = $this->getAssistant();
         $strAssistantId = $arrAssistant['assistant_id'] ?? '';
 

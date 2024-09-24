@@ -21,8 +21,10 @@ $GLOBALS['TL_DCA']['tl_ai_assistants'] = [
                 return;
             }
 
-            $objAssistant = new Assistant($objAssistantEntity->name);
-            $objAssistant->deleteAssistantId();
+            try {
+                $objAssistant = new Assistant($objAssistantEntity->name);
+                $objAssistant->deleteAssistantId();
+            } catch (\Exception $objError) {}
         }],
         'onsubmit_callback' => [function (DataContainer $objDataContainer) {
             if (!$objDataContainer->id) {

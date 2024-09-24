@@ -36,8 +36,10 @@ $GLOBALS['TL_DCA']['tl_ai_file_uploads'] = [
                 return;
             }
 
-            $objFileUpload = new FileUpload($objFileUploadEntity->name);
-            $objFileUpload->deleteFileId();
+            try {
+                $objFileUpload = new FileUpload($objFileUploadEntity->name);
+                $objFileUpload->deleteFileId();
+            } catch (\Exception $objError) {}
         }],
         'onsubmit_callback' => [function (DataContainer $objDataContainer) {
             if (!$objDataContainer->id) {

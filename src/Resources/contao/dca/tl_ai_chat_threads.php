@@ -5,7 +5,6 @@ use Contao\DC_Table;
 $GLOBALS['TL_DCA']['tl_ai_chat_threads'] = [
     'config' => [
         'dataContainer' => DC_Table::class,
-        'ptable' => 'tl_ai_agents',
         'sql' => [
             'keys' => [
                 'id' => 'primary'
@@ -15,9 +14,6 @@ $GLOBALS['TL_DCA']['tl_ai_chat_threads'] = [
     'fields' => [
         'id' => [
             'sql' => ['type' => 'integer', 'autoincrement' => true, 'notnull' => true, 'unsigned' => true]
-        ],
-        'pid' => [
-            'sql' => ['type' => 'integer', 'notnull' => false, 'unsigned' => true, 'default' => 0]
         ],
         'tstamp' => [
             'sql' => ['type' => 'integer', 'notnull' => false, 'unsigned' => true, 'default' => 0]

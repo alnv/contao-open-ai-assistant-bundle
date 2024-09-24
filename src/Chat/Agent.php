@@ -13,19 +13,15 @@ use Contao\StringUtil;
 class Agent
 {
 
+    protected string $strName;
+
     private string $strToken;
 
-    protected array $arrOptions; // thread_id, description, instructions, files
-
-    protected string $strName;
+    protected array $arrOptions; // thread_id, additional_instructions
 
     protected Assistant $objAssistant;
 
-    protected VectorStore $objVectorStore;
-
     protected string $strThreadId = '';
-
-    protected array $arrUploadFiles = [];
 
     public function __construct(string $strName, array $arrOptions = [])
     {
@@ -35,18 +31,7 @@ class Agent
         $this->strName = $strName;
         $this->arrOptions = $arrOptions;
 
-        $this->objAssistant = $this->createAssistant();
-        $this->uploadFile();
-        $this->objVectorStore = $this->createVectorStore();
-
-        $strState = $this->objVectorStore->getVectorStore()['state'] ?? '';
-        if ($strState && $strState !== 'completed') {
-            $this->objVectorStore->retrieve();
-        }
-
-        if ($strState === 'completed') {
-            $this->objAssistant->addVectorStore($this->strName);
-        }
+        $this->objAssistant = new Assistant($this->strName);
 
         $this->load();
     }
@@ -70,10 +55,9 @@ class Agent
         }
 
         $this->strThreadId = $strThreadId;
+        $arrAgent = $this->getCurrentAgentArray();
 
-        $objChatBot = $this->getCurrentChatBotArray();
-
-        if (empty($objChatBot)) {
+        if (empty($arrAgent)) {
 
             $arrSet = [
                 'tstamp' => time(),
@@ -114,9 +98,14 @@ class Agent
         return $arrResponse['id'] ?? '';
     }
 
-    protected function getCurrentChatBotArray(): array
+    public function getCurrentAgentArray(): array
     {
+
         $strThreadId = $this->getThreadId();
+
+        if (!$strThreadId) {
+            return [];
+        }
 
         return Database::getInstance()->prepare('SELECT * FROM tl_ai_chat_threads WHERE `thread_id`=?')->limit(1)->execute($strThreadId)->row();
     }
@@ -125,10 +114,10 @@ class Agent
     {
 
         $strThreadId = $this->getThreadId();
-        $arrChatBot = $this->getCurrentChatBotArray();
+        $arrAgent = $this->getCurrentAgentArray();
 
         $strPrompt = StringUtil::decodeEntities($strPrompt);
-        $strLastPrompt = StringUtil::decodeEntities($arrChatBot['last_prompt']);
+        $strLastPrompt = StringUtil::decodeEntities($arrAgent['last_prompt']);
 
         if ($strLastPrompt && $strPrompt == $strLastPrompt) {
             return $this;
@@ -166,9 +155,7 @@ class Agent
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_chat_threads %s WHERE thread_id=?')
-            ->set([
-                'last_prompt' => $strPrompt
-            ])
+            ->set(['last_prompt' => $strPrompt])
             ->limit(1)
             ->execute($strThreadId);
 
@@ -178,10 +165,10 @@ class Agent
     public function retrieveRun(): array
     {
 
-        $arrChatBot = $this->getCurrentChatBotArray();
+        $arrAgent = $this->getCurrentAgentArray();
 
         $strThreadId = $this->getThreadId();
-        $strRunId = $arrChatBot['last_run_id'] ?? '';
+        $strRunId = $arrAgent['last_run_id'] ?? '';
 
         if (!$strThreadId || !$strRunId) {
             return [];
@@ -207,16 +194,18 @@ class Agent
         return $arrResponse;
     }
 
-    public function run()
+    public function run(): array
     {
 
         $strThreadId = $this->getThreadId();
 
         $arrData = [
+            // 'stream' => true,
+            'additional_instructions' => $this->arrOptions['additional_instructions'] ?? '',
             'assistant_id' => $this->objAssistant->getAssistantId()
         ];
 
-        $objCurl = \curl_init(sprintf(Statics::URL_RUN_THREAD, $strThreadId));
+        $objCurl = \curl_init(\sprintf(Statics::URL_RUN_THREAD, $strThreadId));
 
         \curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, true);
         \curl_setopt($objCurl, CURLOPT_HTTPHEADER, [
@@ -239,33 +228,20 @@ class Agent
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_chat_threads %s WHERE thread_id=?')
-            ->set([
-                'last_run_id' => $arrResponse['id'] ?? ''
-            ])
+            ->set(['last_run_id' => $arrResponse['id'] ?? ''])
             ->limit(1)
             ->execute($strThreadId);
 
         return $arrResponse;
     }
 
-    public function getMessages($intTries = 0): array
+    public function getMessages(): array
     {
 
-        if ($intTries === 10) {
-            return [];
-        }
-
-        $intTries = $intTries + 1;
         $arrCurrentRun = $this->retrieveRun();
 
-        if (empty($arrCurrentRun)) {
-            $this->run();
-            return $this->getMessages($intTries);
-        }
-
-        if ($arrCurrentRun['status'] !== 'completed') {
-            sleep(1);
-            return $this->getMessages($intTries);
+        if (($arrCurrentRun['status'] ?? '') !== 'completed') {
+            return [];
         }
 
         $strThreadId = $this->getThreadId();
@@ -284,56 +260,5 @@ class Agent
         \curl_close($objCurl);
 
         return $arrResponse;
-    }
-
-    protected function createAssistant(): Assistant
-    {
-
-        $objAssistant = new Assistant($this->strName);
-
-        if (!$objAssistant->exist()) {
-            $objAssistant->create([
-                'description' => $this->arrOptions['description'] ?? '',
-                'instructions' => $this->arrOptions['instructions'] ?? ''
-            ]);
-        }
-
-        return $objAssistant;
-    }
-
-    protected function uploadFile(): void
-    {
-
-        $arrFiles = $this->arrOptions['files'] ?? [];
-
-        foreach ($arrFiles as $strFile) {
-            $objFileUpload = new FileUpload($this->strName . '__' . md5($strFile));
-            $objFileUpload->create($strFile);
-
-            $this->arrUploadFiles[] = $objFileUpload;
-        }
-    }
-
-    protected function createVectorStore(): VectorStore
-    {
-
-        $arrFiles = [];
-        foreach ($this->arrUploadFiles as $objUploadFile) {
-            if ($strFileName = ($objUploadFile->getFileUpload()['name'] ?? '')) {
-                $arrFiles[] = $strFileName;
-            }
-        }
-
-        $objVectorStore = new VectorStore($this->strName);
-
-        if (empty($arrFiles)) {
-            return $objVectorStore;
-        }
-
-        $objVectorStore->create([
-            'file_names' => $arrFiles
-        ]);
-
-        return $objVectorStore;
     }
 }

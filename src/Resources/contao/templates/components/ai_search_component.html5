@@ -1,0 +1,20 @@
+<!-- indexer::stop -->
+<div id="<?= $this->templateId ?>" class="ai_search_component block" v-bind:class="{'component_loaded': initial}">
+    <div class="search_component_container">
+        <div class="search_prompt_input">
+            <input type="text" v-model="prompt" v-on:keyup.enter="sendPrompt">
+            <button @click="sendPrompt">
+                <img v-if="answering && initial" src="<?= ($GLOBALS['TL_LANG']['MSC']['searchButtonLoadingIcon'] ?? '') ?>" alt="">
+                <span><?= ($GLOBALS['TL_LANG']['MSC']['aiSearchButton'] ?? '') ?></span>
+            </button>
+        </div>
+        <div class="search_prompt_results" v-bind:class="{active: messages.length || answering}">
+            <div v-if="messages.length" class="prompt_delete"><button class="prompt_delete_button" @click="deleteAnswer()"><span><?= ($GLOBALS['TL_LANG']['MSC']['aiSearchPromptDeleteButton'] ?? '') ?></span></button></div>
+            <div v-if="messages.length" v-for="message in messages" v-html="message.message" class="prompt_result"></div>
+            <div v-if="answering && initial" class="prompt_message"><p><?= ($GLOBALS['TL_LANG']['MSC']['aiSearchWaitingText'] ?? '') ?></p></div>
+            <div v-if="error" class="prompt_error"><p><?= ($GLOBALS['TL_LANG']['MSC']['aiSearchErrorText'] ?? '') ?></p></div>
+        </div>
+    </div>
+</div>
+<?= $this->script ?>
+<!-- indexer::continue -->

@@ -58,8 +58,10 @@ $GLOBALS['TL_DCA']['tl_ai_vector_stores'] = [
                 return;
             }
 
-            $objVectorStore = new VectorStore($objVectorStoreEntity->name);
-            $objVectorStore->deleteVectorStoreId();
+            try {
+                $objVectorStore = new VectorStore($objVectorStoreEntity->name);
+                $objVectorStore->deleteVectorStoreId();
+            } catch (\Exception $objError) {}
         }],
         'onsubmit_callback' => [function (DataContainer $objDataContainer) {
             if (!$objDataContainer->id) {
