@@ -3,10 +3,11 @@
 namespace Alnv\ContaoOpenAiAssistantBundle\Components;
 
 use Alnv\ContaoOpenAiAssistantBundle\Helpers\Toolkit;
-use Contao\System;
 use Contao\Combiner;
 use Contao\FrontendTemplate;
-use FastVolt\Helper\Markdown;
+use Contao\StringUtil;
+use Contao\System;
+use Michelf\MarkdownExtra;
 
 class AiSearchComponent
 {
@@ -40,6 +41,42 @@ class AiSearchComponent
     public function parseMessages(array $arrMessages): array
     {
 
+        $arrResults = [];
+
+        foreach (($arrMessages['data'] ?? []) as $arrMessageData) {
+
+            $strMessage = "";
+            foreach ($arrMessageData['content'] as $arrContent) {
+
+                if ($arrContent['type'] != 'text') {
+                    continue;
+                }
+
+                $strText = $arrContent['text']['value'] ?? '';
+                $strText = StringUtil::decodeEntities($strText);
+
+                $objParser = new MarkdownExtra;
+                $strMessage .= $objParser->transform($strText);
+            }
+
+            if (isset($this->arrOptions['parser']) && is_array($this->arrOptions['parser'])) {
+                $objParser = new $this->arrOptions['parser'][0]();
+                $strMessage = $objParser->{$this->arrOptions['parser'][1]}($strMessage, $arrMessages);
+            }
+
+            $strMessage = System::getContainer()->get('contao.insert_tag.parser')->replaceInline($strMessage);
+
+            if ($strMessage) {
+                $arrResults[] = [
+                    'role' => $arrMessageData['role'] ?? '',
+                    'message' => $strMessage
+                ];
+            }
+        }
+
+        return $arrResults;
+
+        /*
         $arrResults = [];
         $arrMessage = $arrMessages['data'][0] ?? [];
         $strRole = $arrMessage['role'] ?? '';
@@ -81,6 +118,7 @@ class AiSearchComponent
         }
 
         return $arrResults;
+        */
     }
 
     protected function getScript($arrTemplateData): string

@@ -48,7 +48,6 @@
                     }.bind(this));
                 },
                 fetch: function () {
-                    this.messages = [];
                     this.$http.post('open-ai-assistant/search/<?= $this->assistant ?>', {
                             prompt: this.lastPrompt,
                             options: "<?= $this->postOptions ?>"
@@ -78,10 +77,10 @@
                             }
                         }
                         if (arrMessages.length) {
+                            this.messages = arrMessages;
                             this.answering = false;
                             this.clearInterval();
                         }
-                        this.messages = arrMessages;
                         this.lastPrompt = res.body.lastPrompt;
                         this.initial = true;
                     }.bind(this));

@@ -30,6 +30,19 @@ class Getters
         return $arrVectorStores;
     }
 
+    public static function getAssistants(): array
+    {
+
+        $arrAssistants = [];
+        $objAssistantsEntities = Database::getInstance()->prepare('SELECT * FROM tl_ai_assistants ORDER BY `name`')->execute();
+
+        while ($objAssistantsEntities->next()) {
+            $arrAssistants[] = $objAssistantsEntities->row();
+        }
+
+        return $arrAssistants;
+    }
+
     public static function getAssistantsByVectorStoreId($strVectorStoreId): array
     {
 
@@ -45,5 +58,10 @@ class Getters
         }
 
         return $arrAssistants;
+    }
+
+    public static function getParserClassNameByName(string $strParser): string
+    {
+        return $GLOBALS['OPEN_AI_MESSAGE_PARSER'][$strParser]['class'] ?? '';
     }
 }

@@ -16,7 +16,7 @@
   },
   "require": {
     "contao/core-bundle": "~4.13 || ~5.0",
-    "fastvolt/markdown": "^0.2",
+    "michelf/php-markdown": "^2.0",
     "ext-curl": "*"
   },
   "extra": {

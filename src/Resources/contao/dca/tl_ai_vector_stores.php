@@ -111,7 +111,7 @@ $GLOBALS['TL_DCA']['tl_ai_vector_stores'] = [
             'retrieve' => [
                 'icon' => 'sync.svg',
                 'href' => 'vector_store=retrieve',
-                'attributes' => 'onclick="if(!confirm(\'Sollen die Artikel importiert werden?\'))return false;Backend.getScrollOffset()"'
+                'attributes' => 'onclick="if(!confirm(\'Soll der aktuelle Status abgerufen werden?\'))return false;Backend.getScrollOffset()"'
             ]
         ]
     ],

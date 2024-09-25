@@ -1,6 +1,9 @@
 <?php
 
 use Contao\ArrayUtil;
+use Alnv\ContaoOpenAiAssistantBundle\Modules\AiChatBotModule;
+
+$GLOBALS['OPEN_AI_MESSAGE_PARSER'] = $GLOBALS['OPEN_AI_MESSAGE_PARSER']  ?? [];
 
 ArrayUtil::arrayInsert($GLOBALS['BE_MOD'], 2, [
     'ai-bundle' => [
@@ -22,5 +25,11 @@ ArrayUtil::arrayInsert($GLOBALS['BE_MOD'], 2, [
                 'tl_ai_vector_stores'
             ]
         ]
+    ]
+]);
+
+ArrayUtil::arrayInsert($GLOBALS['FE_MOD'], 2, [
+    'open-ai-bundle' => [
+        'ai_chat_bot' => AiChatBotModule::class
     ]
 ]);
