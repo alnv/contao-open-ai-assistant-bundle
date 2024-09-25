@@ -4,8 +4,6 @@ namespace Alnv\ContaoOpenAiAssistantBundle\Chat;
 
 use Alnv\ContaoOpenAiAssistantBundle\Helpers\Statics;
 use Alnv\ContaoOpenAiAssistantBundle\Library\Assistant;
-use Alnv\ContaoOpenAiAssistantBundle\Library\FileUpload;
-use Alnv\ContaoOpenAiAssistantBundle\Library\VectorStore;
 use Contao\Config;
 use Contao\Database;
 use Contao\StringUtil;

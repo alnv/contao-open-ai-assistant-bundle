@@ -10,7 +10,10 @@
                     prompt: "",
                     messages: [],
                     lastPrompt: "",
-                    intervalId: null
+                    intervalId: null,
+                    enableToggle: <?= ($this->toggle ? 'true' : 'false') ?>,
+                    toggleVisible: <?= ($this->toggle_mode === 'hiddenDefault' ? 'false' : 'true') ?>,
+                    questionSuggestions: <?= json_encode(($this->question_suggestions ?: []), 0, 512) ?>
                 }
             },
             methods: {
@@ -23,9 +26,22 @@
                     this.clearPrompt();
                     this.fetch();
                 },
+                getToggleLabel: function () {
+                    if (!this.toggleVisible) {
+                        return "<?= ($GLOBALS['TL_LANG']['MSC']['aiChatToggleButtonTextHidden'] ?? '') ?>";
+                    }
+                    return "<?= ($GLOBALS['TL_LANG']['MSC']['aiChatToggleButtonTextVisible'] ?? '') ?>";
+                },
+                toggleChat: function () {
+                    this.toggleVisible = !this.toggleVisible;
+                },
                 clearPrompt: function () {
                     this.lastPrompt = this.prompt;
                     this.prompt = '';
+                },
+                setPromptAndAnswer: function (question) {
+                    this.prompt = question;
+                    this.sendPrompt();
                 },
                 deleteAnswer: function () {
                     this.messages = [];

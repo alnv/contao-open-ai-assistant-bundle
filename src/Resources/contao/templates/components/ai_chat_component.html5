@@ -1,0 +1,29 @@
+<!-- indexer::stop -->
+<div id="<?= $this->templateId ?>" class="ai_chat_component block" v-bind:class="{'component_loaded': initial}">
+    <div class="chat_prompt_toggle" v-bind:class="{prompt_toggle_active: toggleVisible}" v-if="enableToggle">
+        <button class="prompt_toggle_button" @click="toggleChat">
+            <span>{{ getToggleLabel() }}</span>
+        </button>
+    </div>
+    <div class="chat_component_container" v-show="toggleVisible" v-bind:class="{chat_active: toggleVisible}">
+        <div class="chat_prompt_input">
+            <label for="prompt"><?= ($GLOBALS['TL_LANG']['MSC']['aiChatInputLabel'] ?? '') ?></label>
+            <input id="prompt" type="text" v-model="prompt" v-on:keyup.enter="sendPrompt" placeholder="<?= ($GLOBALS['TL_LANG']['MSC']['aiChatInputLabel'] ?? '') ?>">
+            <button @click="sendPrompt" class="chat_prompt_button"><img v-if="answering && initial" src="<?= ($GLOBALS['TL_LANG']['MSC']['chatButtonLoadingIcon'] ?? '') ?>" alt=""><span><?= ($GLOBALS['TL_LANG']['MSC']['aiChatButton'] ?? '') ?></span></button>
+            <div v-if="questionSuggestions.length" class="prompt_question_suggestions">
+                <button v-for="questionSuggestion in questionSuggestions" class="question_suggestion_text" @click="setPromptAndAnswer(questionSuggestion)"><span>{{ questionSuggestion }}</span></button>
+            </div>
+        </div>
+        <div class="chat_prompt_results" v-bind:class="{active: messages.length || answering}">
+            <div v-if="answering && initial" class="prompt_message"><p><?= ($GLOBALS['TL_LANG']['MSC']['aiChatWaitingText'] ?? '') ?></p></div>
+            <div v-if="error" class="prompt_error"><p><?= ($GLOBALS['TL_LANG']['MSC']['aiChatErrorText'] ?? '') ?></p></div>
+            <div v-if="messages.length" class="prompt_delete"><button class="prompt_delete_button" @click="deleteAnswer()"><span><?= ($GLOBALS['TL_LANG']['MSC']['aiChatPromptDeleteButton'] ?? '') ?></span></button></div>
+            <div v-if="messages.length" v-for="message in messages" :class="'prompt_result '+message.role">
+                <div class="prompt_result_role" v-show="message.role === 'assistant'"><span v-html="message.name"></span></div>
+                <div v-html="message.message" class="prompt_result_message"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<?= $this->script ?>
+<!-- indexer::continue -->

@@ -2,7 +2,7 @@
 
 namespace Alnv\ContaoOpenAiAssistantBundle\Controller;
 
-use Alnv\ContaoOpenAiAssistantBundle\Components\AiSearchComponent;
+use Alnv\ContaoOpenAiAssistantBundle\Components\AiChatComponent;
 use Alnv\ContaoOpenAiAssistantBundle\Helpers\Toolkit;
 use Contao\CoreBundle\Controller\AbstractController;
 use Contao\StringUtil;
@@ -24,17 +24,17 @@ class AiAssistantController extends AbstractController
 
         $strSessionKeyId = 'open-ai-' . md5($assistantName) . '-thread-id';
         $strPrompt = Input::get('prompt') ?: (Input::post('prompt') ?: '');
-        $arrAiSearchOptions = StringUtil::deserialize(Toolkit::getSerializedArrayFromBase64(Input::post('options') ?: ''), true);
-        $objAiSearchComponent = new AiSearchComponent($arrAiSearchOptions);
+        $arrAiChatOptions = StringUtil::deserialize(Toolkit::getSerializedArrayFromBase64(Input::post('options') ?: ''), true);
+        $objAiChatComponent = new AiChatComponent($arrAiChatOptions);
 
         $objSession = System::getContainer()->get('request_stack')->getSession();
         $strThreadId = $objSession->get($strSessionKeyId);
 
         if ($strThreadId) {
-            $arrAiSearchOptions['thread_id'] = $strThreadId;
+            $arrAiChatOptions['thread_id'] = $strThreadId;
         }
 
-        $objAgent = new Agent($assistantName, $arrAiSearchOptions);
+        $objAgent = new Agent($assistantName, $arrAiChatOptions);
         $objSession->set($strSessionKeyId, $objAgent->getThreadId());
 
         if ($strPrompt) {
@@ -45,7 +45,7 @@ class AiAssistantController extends AbstractController
 
         return new JsonResponse([
             'lastPrompt' => $arrAgentArray['last_prompt'] ?? '',
-            'messages' => $objAiSearchComponent->parseMessages($objAgent->getMessages())
+            'messages' => $objAiChatComponent->parseMessages($objAgent->getMessages())
         ]);
     }
 

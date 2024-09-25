@@ -2,10 +2,11 @@
 
 namespace Alnv\ContaoOpenAiAssistantBundle\Modules;
 
-use Alnv\ContaoOpenAiAssistantBundle\Components\AiSearchComponent;
+use Alnv\ContaoOpenAiAssistantBundle\Components\AiChatComponent;
 use Alnv\ContaoOpenAiAssistantBundle\Helpers\Getters;
 use Contao\BackendTemplate;
 use Contao\Module;
+use Contao\StringUtil;
 use Contao\System;
 
 class AiChatBotModule extends Module
@@ -35,16 +36,20 @@ class AiChatBotModule extends Module
     {
 
         $arrOptions = [
-            'assistant' => $this->aiAssistant
+            'assistant' => $this->aiAssistant,
+            'assistant_name' => $this->aiAssistantName ?: '',
+            'question_suggestions' => array_filter(StringUtil::deserialize($this->aiQuestionSuggestions, true)),
+            'toggle' => (bool)$this->aiToggleButton,
+            'toggle_mode' => $this->aiToggleMode ?: ''
         ];
 
         $strParserClass = Getters::getParserClassNameByName($this->aiParser ?: '');
-        if  ($strParserClass && class_exists($strParserClass)) {
+        if ($strParserClass && class_exists($strParserClass)) {
             $objParser = new $strParserClass();
             $arrOptions['additional_instructions'] = $objParser->getAdditionalInstructions();
             $arrOptions['parser'] = [$strParserClass, 'parseMessages'];
         }
 
-        $this->Template->chat = (new AiSearchComponent($arrOptions))->generate();
+        $this->Template->chat = (new AiChatComponent($arrOptions))->generate();
     }
 }

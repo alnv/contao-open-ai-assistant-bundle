@@ -9,7 +9,7 @@ use Contao\StringUtil;
 use Contao\System;
 use Michelf\MarkdownExtra;
 
-class AiSearchComponent
+class AiChatComponent
 {
 
     protected array $arrOptions;
@@ -24,11 +24,19 @@ class AiSearchComponent
 
         $this->setResources();
 
-        $objTemplate = new FrontendTemplate('ai_search_component');
+        $objTemplate = new FrontendTemplate('ai_chat_component');
+
+        $blnUseToggle = $this->arrOptions['toggle'] ?? false;
+        if (!$blnUseToggle) {
+            $this->arrOptions['toggle_mode'] = '';
+        }
 
         $arrTemplateData = [
             'postOptions' => Toolkit::array2Base64($this->arrOptions),
             'assistant' => $this->arrOptions['assistant'] ?? '',
+            'toggle' => $blnUseToggle,
+            'toggle_mode' => $this->arrOptions['toggle_mode'] ?? '',
+            'question_suggestions' => $this->arrOptions['question_suggestions'] ?? [],
             'templateId' => 'id_' . uniqid()
         ];
 
@@ -42,7 +50,6 @@ class AiSearchComponent
     {
 
         $arrResults = [];
-
         foreach (($arrMessages['data'] ?? []) as $arrMessageData) {
 
             $strMessage = "";
@@ -64,67 +71,25 @@ class AiSearchComponent
                 $strMessage = $objParser->{$this->arrOptions['parser'][1]}($strMessage, $arrMessages);
             }
 
+            $strName = $arrMessageData['role'] == 'assistant' ? ($this->arrOptions['assistant_name'] ?? $arrMessageData['role']) : $arrMessageData['role'];
             $strMessage = System::getContainer()->get('contao.insert_tag.parser')->replaceInline($strMessage);
 
             if ($strMessage) {
                 $arrResults[] = [
-                    'role' => $arrMessageData['role'] ?? '',
+                    'name' => $strName,
+                    'role' => $arrMessageData['role'],
                     'message' => $strMessage
                 ];
             }
         }
 
         return $arrResults;
-
-        /*
-        $arrResults = [];
-        $arrMessage = $arrMessages['data'][0] ?? [];
-        $strRole = $arrMessage['role'] ?? '';
-
-        if ($strRole !== 'assistant') {
-            return [];
-        }
-
-        $strMessage = "";
-        foreach ($arrMessage['content'] as $arrContent) {
-
-            if ($arrContent['type'] != 'text') {
-                continue;
-            }
-
-            $strText = $arrContent['text']['value'] ?? '';
-
-            if (!$strText) {
-                continue;
-            }
-
-            $objMarkdown = Markdown::new();
-            $objMarkdown->setContent($strText);
-            $strMessage .= $objMarkdown->toHtml();
-        }
-
-        if (isset($this->arrOptions['parser']) && is_array($this->arrOptions['parser'])) {
-            $objParser = new $this->arrOptions['parser'][0]();
-            $strMessage = $objParser->{$this->arrOptions['parser'][1]}($strMessage, $arrMessages);
-        }
-
-        $strMessage = System::getContainer()->get('contao.insert_tag.parser')->replaceInline($strMessage);
-
-        if ($strMessage) {
-            $arrResults[] = [
-                'role' => 'assistant',
-                'message' => $strMessage
-            ];
-        }
-
-        return $arrResults;
-        */
     }
 
     protected function getScript($arrTemplateData): string
     {
 
-        $objTemplate = new FrontendTemplate('j_ai_search_component');
+        $objTemplate = new FrontendTemplate('j_ai_chat_component');
         $objTemplate->setData($arrTemplateData);
 
         return $objTemplate->parse();
