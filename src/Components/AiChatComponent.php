@@ -68,7 +68,7 @@ class AiChatComponent
 
             if (isset($this->arrOptions['parser']) && is_array($this->arrOptions['parser'])) {
                 $objParser = new $this->arrOptions['parser'][0]();
-                $strMessage = $objParser->{$this->arrOptions['parser'][1]}($strMessage, $arrMessages);
+                $strMessage = $objParser->{$this->arrOptions['parser'][1]}($strMessage, $arrMessages, $this->arrOptions);
             }
 
             $strName = $arrMessageData['role'] == 'assistant' ? ($this->arrOptions['assistant_name'] ?? $arrMessageData['role']) : $arrMessageData['role'];

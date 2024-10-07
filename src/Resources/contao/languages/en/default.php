@@ -7,3 +7,4 @@ $GLOBALS['TL_LANG']['MSC']['aiChatPromptDeleteButton'] = 'Clear chat';
 $GLOBALS['TL_LANG']['MSC']['aiChatInputLabel'] = 'Ask your question here';
 $GLOBALS['TL_LANG']['MSC']['aiChatToggleButtonTextHidden'] = 'Close chat';
 $GLOBALS['TL_LANG']['MSC']['aiChatToggleButtonTextVisible'] = 'Open chat';
+$GLOBALS['TL_LANG']['MSC']['aiChatButtonLoadingIcon'] = '/system/themes/flexible/icons/loading.svg';

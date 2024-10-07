@@ -5,8 +5,11 @@ namespace Alnv\ContaoOpenAiAssistantBundle\Chat;
 use Alnv\ContaoOpenAiAssistantBundle\Helpers\Statics;
 use Alnv\ContaoOpenAiAssistantBundle\Library\Assistant;
 use Contao\Config;
+use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\Database;
 use Contao\StringUtil;
+use Contao\System;
+use Psr\Log\LogLevel;
 
 class Agent
 {
@@ -237,6 +240,12 @@ class Agent
     {
 
         $arrCurrentRun = $this->retrieveRun();
+
+        if (($arrCurrentRun['status'] ?? '') === 'failed') {
+            System::getContainer()
+                ->get('monolog.logger.contao')
+                ->log(LogLevel::ERROR, $arrCurrentRun['last_error']['message'] ?? '', ['contao' => new ContaoContext(__CLASS__ . '::' . __FUNCTION__)]);
+        }
 
         if (($arrCurrentRun['status'] ?? '') !== 'completed') {
             return [];

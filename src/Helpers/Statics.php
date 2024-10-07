@@ -5,7 +5,7 @@ namespace Alnv\ContaoOpenAiAssistantBundle\Helpers;
 class Statics
 {
 
-    public const CHAT_GPT_MODEL = 'gpt-4o';
+    public const CHAT_GPT_MODEL = 'gpt-4-turbo';
 
     public const URL_CREATE_ASSISTANT = 'https://api.openai.com/v1/assistants';
 

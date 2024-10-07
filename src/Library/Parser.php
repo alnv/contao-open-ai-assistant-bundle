@@ -10,8 +10,8 @@ abstract class Parser
         return '';
     }
 
-    public function parseMessages($strMessage, $arrMessages): string
+    public function parseMessages($strMessage, $arrMessages, $arrOptions = []): string
     {
-        return '';
+        return $strMessage;
     }
 }

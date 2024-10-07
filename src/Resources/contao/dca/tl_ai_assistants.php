@@ -1,5 +1,6 @@
 <?php
 
+use Alnv\ContaoOpenAiAssistantBundle\Helpers\Statics;
 use Contao\DC_Table;
 use Contao\Database;
 use Contao\StringUtil;
@@ -44,6 +45,7 @@ $GLOBALS['TL_DCA']['tl_ai_assistants'] = [
                 $objAssistant->createAssistantId();
             } else {
                 $objAssistant->modifyAssistantId([
+                    'model' => Statics::CHAT_GPT_MODEL,
                     'name' => $objAssistantEntity->name ?: '',
                     'description' => $objAssistantEntity->description ?: '',
                     'instructions' => $objAssistantEntity->instructions ?: ''

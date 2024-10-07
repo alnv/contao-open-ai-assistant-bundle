@@ -172,6 +172,7 @@ class Assistant extends ChatGPT
             'description' => $arrAssistant['description'] ?? '',
             'instructions' => $arrAssistant['instructions'] ?? '',
             'model' => Statics::CHAT_GPT_MODEL,
+            // 'response_format' => 'json_object',
             'tools' => [
                 ['type' => 'file_search']
             ]
