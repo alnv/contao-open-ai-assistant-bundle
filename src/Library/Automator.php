@@ -17,7 +17,7 @@ class Automator
         }
 
         $arrFileUpload = Getters::getFileUploadByFile($objFile->uuid);
-        $strFileUploadName = $arrFileUpload['name'] ?: $strName;
+        $strFileUploadName = ($arrFileUpload['name'] ?? '') ?: $strName;
 
         if (!$strFileUploadName) {
             return;
