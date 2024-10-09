@@ -5,6 +5,7 @@ use Contao\Controller;
 use Contao\Database;
 use Contao\DataContainer;
 use Contao\DC_Table;
+use Contao\Input;
 use Contao\Environment;
 
 

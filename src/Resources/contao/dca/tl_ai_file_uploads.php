@@ -2,6 +2,7 @@
 
 use Contao\Input;
 use Contao\DC_Table;
+use Contao\Database;
 use Contao\DataContainer;
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Alnv\ContaoOpenAiAssistantBundle\Library\FileUpload;
