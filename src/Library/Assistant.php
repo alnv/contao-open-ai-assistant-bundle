@@ -140,13 +140,13 @@ class Assistant extends ChatGPT
             'tstamp' => time()
         ];
 
-        if ($strName = $arrAssistantData['name']) {
+        if ($strName = ($arrAssistantData['name'] ?? '')) {
             $arrSet['name'] = $strName;
         }
-        if ($strDescription = $arrAssistantData['description']) {
+        if ($strDescription = ($arrAssistantData['description'] ?? '')) {
             $arrSet['description'] = $strDescription;
         }
-        if ($strInstructions = $arrAssistantData['instructions']) {
+        if ($strInstructions = ($arrAssistantData['instructions'] ?? '')) {
             $arrSet['instructions'] = $strInstructions;
         }
 
