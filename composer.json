@@ -1,7 +1,9 @@
 {
   "name": "alnv/contao-open-ai-assistant-bundle",
   "type": "contao-bundle",
-  "description": "",
+  "license": "proprietary",
+  "description": "OpenAI-ChatBot",
+  "keywords": ["contao", "elasticsearch", "open", "ai", "prompt", "ki", "vector store", "machine learning", "assistant", "catalog-manager"],
   "authors": [
     {
       "name": "Alexander Naumov",

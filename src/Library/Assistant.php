@@ -117,7 +117,7 @@ class Assistant extends ChatGPT
             return;
         }
 
-        $objCurl = \curl_init(sprintf(Statics::URL_MODIFY_ASSISTANT, $strAssistantId));
+        $objCurl = \curl_init(\sprintf(Statics::URL_MODIFY_ASSISTANT, $strAssistantId));
 
         \curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, true);
         \curl_setopt($objCurl, CURLOPT_HTTPHEADER, [
@@ -127,7 +127,7 @@ class Assistant extends ChatGPT
         ]);
 
         \curl_setopt($objCurl, CURLOPT_POST, true);
-        \curl_setopt($objCurl, CURLOPT_POSTFIELDS, json_encode($arrAssistantData));
+        \curl_setopt($objCurl, CURLOPT_POSTFIELDS, \json_encode($arrAssistantData));
 
         $objResponse = \curl_exec($objCurl);
         $arrResponse = \json_decode($objResponse, true);
@@ -188,7 +188,7 @@ class Assistant extends ChatGPT
         ]);
 
         \curl_setopt($objCurl, CURLOPT_POST, true);
-        \curl_setopt($objCurl, CURLOPT_POSTFIELDS, json_encode($arrData));
+        \curl_setopt($objCurl, CURLOPT_POSTFIELDS, \json_encode($arrData));
 
         $objResponse = \curl_exec($objCurl);
         $arrResponse = \json_decode($objResponse, true);
@@ -197,7 +197,7 @@ class Assistant extends ChatGPT
             throw new \RuntimeException($arrResponse['error']['message'] ?? '');
         }
 
-        $strAssistantId = ($arrResponse['id'] ?? '');
+        $strAssistantId = $arrResponse['id'] ?? '';
 
         Database::getInstance()
             ->prepare('UPDATE tl_ai_assistants %s WHERE id=?')
